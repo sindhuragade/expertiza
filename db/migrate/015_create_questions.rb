@@ -8,7 +8,7 @@ class CreateQuestions < ActiveRecord::Migration
   end
 
   add_index "questions", ["questionnaire_id"], :name => "fk_question_questionnaires"
- add_column :questions, :position_num, :integer
+ 
   execute "alter table questions 
              add constraint fk_question_questionnaires
              foreign key (questionnaire_id) references questionnaires(id)"
