@@ -365,7 +365,6 @@ ActiveRecord::Schema.define(:version => 20110512155258) do
     t.boolean "true_false"
     t.integer "weight"
     t.integer "questionnaire_id"
-    t.integer "position_num"
   end
 
   add_index "questions", ["questionnaire_id"], :name => "fk_question_questionnaires"
