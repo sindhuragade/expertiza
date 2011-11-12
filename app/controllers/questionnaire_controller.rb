@@ -3,7 +3,7 @@ class QuestionnaireController < ApplicationController
   # A Questionnaire can be of several types (QuestionnaireType)
   # Each Questionnaire contains zero or more questions (Question)
   # Generally a questionnaire is associated with an assignment (Assignment)  
-  before_filter :authorize, :check
+  before_filter :authorize
   
   # Create a clone of the given questionnaire, copying all associated
   # questions. The name and creator are updated.
@@ -173,6 +173,7 @@ class QuestionnaireController < ApplicationController
   #save questionnaire object after create or edit
   def save_questionnaire     
     begin
+      set_position_numbers
       @questionnaire.save!
       save_questions @questionnaire.id if @questionnaire.id != nil and @questionnaire.id > 0
       
@@ -243,6 +244,63 @@ class QuestionnaireController < ApplicationController
       end
     end
   end
+
+
+#This function collects all the questions(the ones that are currently in the rubric and the ones that have been added)
+#and sorts them according to their position number so that the position number field is correctly updated in the
+#database
+def set_position_numbers
+
+      original_array = Array.new # array to be used to store all the questions--both new and old
+      sorted_array=Array.new  # array to save all the questions in sorted order
+
+      # if there are any new questions that have been added and if their text field is not empty push them into the original_array(as [position_num,txt] pairs)
+      if params[:new_question]!=nil
+        for question_key1 in params[:new_question].keys
+          if !params[:new_question][question_key1][:txt].strip.empty?
+            original_array << [params[:new_question][question_key1][:position_num].to_i,params[:new_question][question_key1][:txt]]
+          end
+        end
+      end
+
+      # if there are any old questions that have not been deleted, push them into the original_array(as [position_num,txt] pairs)
+      if params[:question]!=nil
+        for question_key in params[:question].keys
+                original_array << [params[:question][question_key][:position_num].to_i,params[:question][question_key][:txt]]
+            end
+      end
+
+      #if either of the arrays i.e question or new_question is not empty,it means that there are questions which have been added to the original_array
+      #and thus we sort the original_array based on position numbers and save the result in sorted_array
+      if params[:new_question]!=nil || params[:question]!=nil
+      sorted_array=original_array.sort
+      i=1
+      for iter in sorted_array   # once sorted, we assign new position numbers for the questions in correct order starting from 1.
+         iter[0]=i      # iter[0] is the position_num and iter[1] is the txt
+        i=i+1
+      end
+
+      for iter in sorted_array
+      #find the array(new_question or question) to which each entry in the sorted array belongs(by matching the txt) and update
+      #its position number to the one that we have given in the sorted_array. This will ensure that we save questions in the correct order in the database.
+        if params[:new_question]!=nil
+              for question_key1 in params[:new_question].keys #iterating through the new_question array
+                if params[:new_question][question_key1][:txt]==iter[1]  #if txt matches
+                             params[:new_question][question_key1][:position_num]=iter[0] #update the position_num
+                        end
+              end
+        end
+
+        if params[:question]!=nil
+              for question_key in params[:question].keys      #iterating through the question array
+                                    if params[:question][question_key][:txt]==iter[1]    #if txt matches
+                                         params[:question][question_key][:position_num]=iter[0] #update the position_num
+                                    end
+              end
+        end
+      end
+      end
+    end
 
 
 end
