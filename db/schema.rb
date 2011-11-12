@@ -364,6 +364,7 @@ ActiveRecord::Schema.define(:version => 20110512155258) do
     t.text    "txt"
     t.boolean "true_false"
     t.integer "weight"
+    t.integer "position_num"
     t.integer "questionnaire_id"
   end
 
