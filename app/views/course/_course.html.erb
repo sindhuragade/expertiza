@@ -7,10 +7,11 @@
 <%= text_field 'course', 'info'  %></p>
 
 <p><label for="course_start_date">Course Start date</label><br/>
-<%= text_field 'course', 'start_date'  %></p>
+<%= text_field 'course', 'start_date'  %>
+<img src="/images/cal.gif"  onClick="NewCal('course_start_date','YYYYMMDD'); return false;"/></p>
 
 <p><label for="course_end_date">Course End date</label><br/>
-<%= text_field 'course', 'end_date'  %></p>
-
+<%= text_field 'course', 'end_date'  %>
+<img src="/images/cal.gif"  onClick="NewCal('course_end_date','YYYYMMDD'); return false;"/></p>
 <!--[eoform:user]-->
 <br/>
