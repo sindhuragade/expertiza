@@ -1,6 +1,13 @@
 class TreeDisplayController < ApplicationController
   helper :application
-  
+
+  #session variables used here
+  #session[:course_rubrics] : indicates if we are viewing course related rubrics
+  #session[:question_naire] : indicates if we are going to the questionnaires page from the manage menu
+  #session[:choice] : indicates if we need to filter the assignments. 0 indicates No. 1 indicates Yes
+  #session[:question] : indicates if we need to filter the questionnaires. 0 indicates No. 1 indicates Yes
+
+
   # direct access to questionnaires
   def goto_questionnaires
     session[:question_naire]=1
@@ -90,23 +97,23 @@ class TreeDisplayController < ApplicationController
                 assignment_array=Array.new
                 seen={}
                 #filtering the @child_nodes array
-                for assign in @child_nodes
-                              assignment_array=Assignment.find_all_by_name(assign.get_name)
+                for assignments in @child_nodes
+                              assignment_array=Assignment.find_all_by_name(assignments.get_name)
                               #copy all assignments whose course_id's are null into a new array
-                              for e in assignment_array
-                                      key=[e.name]
+                              for each_assignment in assignment_array
+                                      key=[each_assignment.name]
                                       if  !seen.has_key?(key)
-                                           if e.course_id.nil?
+                                           if each_assignment.course_id.nil?
                                                     seen[key]=1
-                                                    copy_child_nodes << assign
+                                                    copy_child_nodes << assignments
                                            end
                                       end
                               end
                 end
                 @child_nodes=Array.new
                 #copy back into the @child_nodes array
-                for assign1 in copy_child_nodes
-                      @child_nodes << assign1
+                for assignments in copy_child_nodes
+                      @child_nodes << assignments
                 end
   end
 
@@ -117,13 +124,13 @@ class TreeDisplayController < ApplicationController
     filtered_rubrics = Array.new
 
                            assignments_by_instructor = Assignment.find_all_by_instructor_id(session[:user].id)
-                           for a in assignments_by_instructor
-                                questionnaire_ids << AssignmentQuestionnaires.find_all_by_assignment_id(a.id)
+                           for assignments in assignments_by_instructor
+                                questionnaire_ids << AssignmentQuestionnaires.find_all_by_assignment_id(assignments.id)
                            end
                            #get all questionnaires associated with this instructors assignments
                            seen={}
-                           for b in questionnaire_ids
-                              for temp_value in b
+                           for questionnaire in questionnaire_ids
+                              for temp_value in questionnaire
                                   key=[Questionnaire.find_by_id(temp_value.questionnaire_id).name]
                                   if !seen.has_key?(key)
                                         questionnaires_array << Questionnaire.find_by_id(temp_value.questionnaire_id).name
@@ -133,26 +140,26 @@ class TreeDisplayController < ApplicationController
                            end
                            #filter the @child_nodes array
                            seen={}
-                           for d in @child_nodes
+                           for assignments in @child_nodes
                                   #check if this rubric is present in the list of rubrics associated with assignments
-                                  for c in questionnaires_array
-                                         if c==d.get_name
+                                  for questionnaire in questionnaires_array
+                                         if questionnaire==assignments.get_name
                                                 flag1=1
                                          end
                                   end
                                   #if not present
                                   if flag1!=1
-                                      key=[d.get_name]
+                                      key=[assignments.get_name]
                                       if !seen.has_key?(key)
-                                           filtered_rubrics << d
+                                           filtered_rubrics << assignments
                                            seen[key]=1
                                       end
                                   end
                            end
 
                            @child_nodes=Array.new
-                                for k in filtered_rubrics
-                                    @child_nodes << k
+                                for rubric in filtered_rubrics
+                                    @child_nodes << rubric
                            end
   end
 
@@ -163,43 +170,21 @@ class TreeDisplayController < ApplicationController
 
             course_related_assignments = Assignment.find_all_by_course_id(session[:course_rubrics])
 
-            for a in course_related_assignments
-               temp=Assignment.find(a).instructor_id;
-               if(temp==session[:user].id)
-                      questionnaire_ids << AssignmentQuestionnaires.find_all_by_assignment_id(a.id)
-               end
+            for assignments in course_related_assignments
+              # temp=Assignment.find(a).instructor_id;
+               #if(temp==session[:user].id)
+                      questionnaire_ids << AssignmentQuestionnaires.find_all_by_assignment_id(assignments.id)
+              # end
             end
 
             #all questionnaires related to course
-            for b in questionnaire_ids
-              for f in b
-               questionnaires_array << Questionnaire.find_by_id(f.questionnaire_id).name
-              #  puts Node.find(Questionnaire.find_by_id(f.questionnaire_id).id)
+            for questionnaire in questionnaire_ids
+              for each_questionnaire in questionnaire
+               @child_nodes << Questionnaire.find_by_id(each_questionnaire.questionnaire_id)
+                puts Questionnaire.find_by_id(each_questionnaire.questionnaire_id).name
               end
             end
-            if session[:root].to_i!=1
-                    filtered_rubrics=Array.new
-                    #filter the rubrics
-                    for c in questionnaires_array
-                        for d in @child_nodes
-                          puts d
-                          puts d.get_name
-                            if c==d.get_name
-                                  filtered_rubrics << d
-                            end
-                        end
-                    end
 
-                    seen={}
-                    @child_nodes=Array.new
-                    for e in filtered_rubrics
-                       key=[e.get_name]
-                       if !seen.has_key?(key)
-                            @child_nodes << e
-                            seen[key]=1
-                       end
-                    end
-          end
   end
 
 
